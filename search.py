@@ -89,14 +89,14 @@ def depthFirstSearch(problem):
 
     startState = problem.getStartState()
     #initialize stack (frontier)
-    #frontier = util.structure()
+    frontier = util.Stack()
     frontier.push(startState)
     # initialize explored set
     explored = set()
     #initialize solution path
     solution = util.Queue()
     #initialize dict of states to store each state's action and parent
-    path = {}
+    path = {startState: {'action': None, 'parent': None}}
 
     while not frontier.isEmpty():
         state = frontier.pop()

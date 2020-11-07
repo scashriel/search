@@ -86,11 +86,36 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    "*** YOUR CODE HERE ***"
+    return graphSearch(problem, util.Stack())
 
+def breadthFirstSearch(problem):
+    """Search the shallowest nodes in the search tree first."""
+
+
+    util.raiseNotDefined()
+
+def uniformCostSearch(problem):
+    """Search the node of least total cost first."""
+    "*** YOUR CODE HERE ***"
+    util.raiseNotDefined()
+
+def nullHeuristic(state, problem=None):
+    """
+    A heuristic function estimates the cost from the current state to the nearest
+    goal in the provided SearchProblem.  This heuristic is trivial.
+    """
+    return 0
+
+def aStarSearch(problem, heuristic=nullHeuristic):
+    """Search the node that has the lowest combined cost and heuristic first."""
+    "*** YOUR CODE HERE ***"
+    util.raiseNotDefined()
+
+
+def graphSearch(problem, frontier):
     startState = problem.getStartState()
     #initialize stack (frontier)
-    frontier = util.Stack()
+    #frontier = util.structure()
     frontier.push(startState)
     # initialize explored set
     explored = set()
@@ -111,29 +136,6 @@ def depthFirstSearch(problem):
             if successor[0] not in explored:
                 path[successor[0]] = {'action': successor[1], 'parent': state}
                 frontier.push(successor[0])
-
-def breadthFirstSearch(problem):
-    """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
-def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
-def nullHeuristic(state, problem=None):
-    """
-    A heuristic function estimates the cost from the current state to the nearest
-    goal in the provided SearchProblem.  This heuristic is trivial.
-    """
-    return 0
-
-def aStarSearch(problem, heuristic=nullHeuristic):
-    """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
 
 # Abbreviations
 bfs = breadthFirstSearch

@@ -86,7 +86,29 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    return graphSearch(problem, util.Stack())
+
+    startState = problem.getStartState()
+    #initialize stack (frontier)
+    #frontier = util.structure()
+    frontier.push(startState)
+    # initialize explored set
+    explored = set()
+    #initialize solution path
+    solution = util.Queue()
+    #initialize dict of states to store each state's action and parent
+    path = {}
+
+    while not frontier.isEmpty():
+        state = frontier.pop()
+        if problem.isGoalState(state):
+            return getSolution(path, state)
+        explored.add(state)
+        for successor in problem.getSuccessors(state):
+            if successor[0] not in explored:
+                path[successor[0]] = {'action': successor[1], 'parent': state}
+                frontier.push(successor[0])
+
+    #return graphSearch(problem, util.Stack())
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
@@ -112,30 +134,38 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     util.raiseNotDefined()
 
 
-def graphSearch(problem, frontier):
-    startState = problem.getStartState()
-    #initialize stack (frontier)
-    #frontier = util.structure()
-    frontier.push(startState)
-    # initialize explored set
-    explored = set()
-    #initialize solution path
-    solution = util.Queue()
-    #initialize dict of states to store each state's action and parent
-    path = {}
+# def graphSearch(problem, frontier):
+#     startState = problem.getStartState()
+#     #initialize stack (frontier)
+#     #frontier = util.structure()
+#     frontier.push(startState)
+#     # initialize explored set
+#     explored = set()
+#     #initialize solution path
+#     solution = util.Queue()
+#     #initialize dict of states to store each state's action and parent
+#     path = {}
+#
+#     while not frontier.isEmpty():
+#         state = frontier.pop()
+#         if problem.isGoalState(state):
+#             while state != startState:
+#                 solution.push(path[state]['action'])
+#                 state = path[state]['parent']
+#             return solution.list
+#         explored.add(state)
+#         for successor in problem.getSuccessors(state):
+#             if successor[0] not in explored:
+#                 path[successor[0]] = {'action': successor[1], 'parent': state}
+#                 frontier.push(successor[0])
 
-    while not frontier.isEmpty():
-        state = frontier.pop()
-        if problem.isGoalState(state):
-            while state != startState:
-                solution.push(path[state]['action'])
-                state = path[state]['parent']
-            return solution.list
-        explored.add(state)
-        for successor in problem.getSuccessors(state):
-            if successor[0] not in explored:
-                path[successor[0]] = {'action': successor[1], 'parent': state}
-                frontier.push(successor[0])
+def getSolution(problem, goalState):
+    solution = util.Queue()
+    state = goalState
+    while path[state]['parent'] != None:
+        solution.push(path[state]['action'])
+        state = path[state]['parent']
+    return solution.list
 
 # Abbreviations
 bfs = breadthFirstSearch

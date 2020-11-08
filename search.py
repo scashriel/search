@@ -19,6 +19,23 @@ Pacman agents (in searchAgents.py).
 
 import util
 
+class Wrapper:
+    def __init__(self, frontier):
+        self.frontier = frontier
+
+    def push(self, item, priority):
+        self.frontier.push(item)
+
+    def pop(self):
+        return self.frontier.pop()
+
+    def isEmpty(self):
+        return self.frontier.isEmpty()
+
+    def update(self, item, priority):
+        #self.push(item, priority)
+        pass
+
 class SearchProblem:
     """
     This class outlines the structure of a search problem, but doesn't implement
@@ -87,62 +104,22 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
 
-    startState = problem.getStartState()
     #initialize stack (frontier)
-    frontier = util.Stack()
-    frontier.push(startState)
-    # initialize explored set
-    explored = set()
-    #initialize solution path
-    solution = util.Queue()
-    #initialize dict of states to store each state's action and parent
-    path = {startState: {'action': None, 'parent': None}}
-
-    while not frontier.isEmpty():
-        state = frontier.pop()
-        if problem.isGoalState(state):
-            return getSolution(path, state)
-        explored.add(state)
-        for successor in problem.getSuccessors(state):
-            if successor[0] not in explored:
-                path[successor[0]] = {'action': successor[1], 'parent': state}
-                frontier.push(successor[0])
-
-    #return graphSearch(problem, util.Stack())
+    frontier = Wrapper(util.Stack())
+    return graphSearch(problem, frontier)
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    startState = problem.getStartState()
-    if problem.isGoalState(startState):
-        return startState
+
     #initialize frontier with start set
-    frontier = util.Queue()
-    frontier.push(startState)
-    frontierSet = set()
-    frontierSet.add(startState)
-    # initialize explored set
-    explored = set()
-    # initialize path dictionary
-    path = {startState: {'action': None, 'parent': None}}
-
-    while not frontier.isEmpty():
-        state = frontier.pop()
-#        print(f'current state is {state}')
-        if problem.isGoalState(state):
-            return getSolution(path, state)
-        explored.add(state)
-        for successor in problem.getSuccessors(state):
-            if successor[0] not in explored and successor[0] not in frontierSet:
-                path[successor[0]] = {'action': successor[1], 'parent': state}
-                frontier.push(successor[0])
-                frontierSet.add(successor[0])
-
-    #return graphSearch(problem, util.Queue())
+    frontier = Wrapper(util.Queue())
+    return graphSearch(problem, frontier)
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    frontier = util.PriorityQueue()
+    return graphSearch(problem, frontier)
 
 def nullHeuristic(state, problem=None):
     """
@@ -156,14 +133,30 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
 
+def graphSearch(problem, frontier, heuristic=nullHeuristic):
+    startState = problem.getStartState()
+    steps = list('')
+    frontier.push((startState,steps), 0 + heuristic(startState, problem))
+    explored = set()
 
-def getSolution(path, goalState):
-    solution = util.Queue()
-    state = goalState
-    while path[state]['parent'] != None:
-        solution.push(path[state]['action'])
-        state = path[state]['parent']
-    return solution.list
+    if problem.isGoalState(startState): return []
+
+    visited = set()
+    visited.add(startState)
+
+    while not frontier.isEmpty():
+        state, steps = frontier.pop()
+        if problem.isGoalState(state):
+            return steps
+        explored.add(state)
+        for successor, action, cost in problem.getSuccessors(state):
+            if successor not in explored and successor in visited:
+                frontier.update((successor, (steps + [action])), (problem.getCostOfActions((steps + [action])) + cost + heuristic(successor, problem)))
+            elif successor not in explored and successor not in visited:
+                frontier.push((successor, (steps + [action])), (problem.getCostOfActions((steps + [action])) + cost + heuristic(successor, problem)))
+                visited.add(successor)
+
+
 
 # Abbreviations
 bfs = breadthFirstSearch

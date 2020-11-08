@@ -22,6 +22,7 @@ import util
 class Wrapper:
     def __init__(self, frontier):
         self.frontier = frontier
+        self.list = frontier.list
 
     def push(self, item, priority):
         self.frontier.push(item)
@@ -33,7 +34,6 @@ class Wrapper:
         return self.frontier.isEmpty()
 
     def update(self, item, priority):
-        #self.push(item, priority)
         pass
 
 class SearchProblem:
@@ -131,7 +131,9 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    frontier = util.PriorityQueue()
+    return graphSearch(problem, frontier, heuristic)
+    #util.raiseNotDefined()
 
 def graphSearch(problem, frontier, heuristic=nullHeuristic):
     startState = problem.getStartState()
@@ -141,8 +143,7 @@ def graphSearch(problem, frontier, heuristic=nullHeuristic):
 
     if problem.isGoalState(startState): return []
 
-    visited = set()
-    visited.add(startState)
+    visited = {startState: 0 + heuristic(startState, problem)}
 
     while not frontier.isEmpty():
         state, steps = frontier.pop()
@@ -150,11 +151,11 @@ def graphSearch(problem, frontier, heuristic=nullHeuristic):
             return steps
         explored.add(state)
         for successor, action, cost in problem.getSuccessors(state):
-            if successor not in explored and successor in visited:
+            if successor in visited and visited[successor] >= (problem.getCostOfActions((steps + [action])) + cost + heuristic(successor, problem)):
                 frontier.update((successor, (steps + [action])), (problem.getCostOfActions((steps + [action])) + cost + heuristic(successor, problem)))
-            elif successor not in explored and successor not in visited:
+            if successor not in explored and successor not in visited:
                 frontier.push((successor, (steps + [action])), (problem.getCostOfActions((steps + [action])) + cost + heuristic(successor, problem)))
-                visited.add(successor)
+                visited[successor] = problem.getCostOfActions((steps + [action])) + cost + heuristic(successor, problem)
 
 
 

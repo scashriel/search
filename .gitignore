@@ -129,6 +129,6 @@ dmypy.json
 .pyre/
 
 VERSION
-output.txt
+output*
 README*
 autograder.txt

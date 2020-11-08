@@ -18,6 +18,8 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+from util import PriorityQueue
+import heapq
 
 class Wrapper:
     def __init__(self, frontier):
@@ -35,6 +37,26 @@ class Wrapper:
 
     def update(self, item, priority):
         pass
+
+class QueueWrapper(PriorityQueue):
+    def __init__(self, frontier):
+        self.frontier = frontier
+        PriorityQueue.__init__(self)        # super-class initializer
+
+    def update(self, item, priority):
+        # If item already in priority queue with higher priority, update its priority and rebuild the heap.
+        # If item already in priority queue with equal or lower priority, do nothing.
+        # If item not in priority queue, do the same thing as self.push.
+        for index, (p, c, i) in enumerate(self.heap):
+            if i[0] == item[0]:
+                if p <= priority:
+                    break
+                del self.heap[index]
+                self.heap.append((priority, c, item))
+                heapq.heapify(self.heap)
+                break
+        else:
+            self.push(item, priority)
 
 class SearchProblem:
     """
@@ -118,7 +140,7 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
 
-    frontier = util.PriorityQueue()
+    frontier = QueueWrapper(util.PriorityQueue())
     return graphSearch(problem, frontier)
 
 def nullHeuristic(state, problem=None):
@@ -130,8 +152,7 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    frontier = util.PriorityQueue()
+    frontier = QueueWrapper(util.PriorityQueueWithFunction(heuristic))
     return graphSearch(problem, frontier, heuristic)
     #util.raiseNotDefined()
 
@@ -147,15 +168,21 @@ def graphSearch(problem, frontier, heuristic=nullHeuristic):
 
     while not frontier.isEmpty():
         state, steps = frontier.pop()
+        #print(f'state is {state}')
         if problem.isGoalState(state):
             return steps
         explored.add(state)
         for successor, action, cost in problem.getSuccessors(state):
-            if successor in visited and visited[successor] >= (problem.getCostOfActions((steps + [action])) + cost + heuristic(successor, problem)):
-                frontier.update((successor, (steps + [action])), (problem.getCostOfActions((steps + [action])) + cost + heuristic(successor, problem)))
+            pathCost = (problem.getCostOfActions((steps + [action])) + heuristic(successor, problem))
+        #    print(f'{successor} heuristic is ', heuristic(successor, problem))
+            if visited.get(successor, 0) > pathCost:
+#                print(f'\n{successor} in visited with pathcost\n', visited.get(successor, 0), visited)
+                frontier.update((successor, (steps + [action])), pathCost)
+                visited[successor] = pathCost
+#                print('\nupdated visited\n', visited, f'pathcost is {pathCost}')
             if successor not in explored and successor not in visited:
-                frontier.push((successor, (steps + [action])), (problem.getCostOfActions((steps + [action])) + cost + heuristic(successor, problem)))
-                visited[successor] = problem.getCostOfActions((steps + [action])) + cost + heuristic(successor, problem)
+                frontier.push((successor, (steps + [action])), pathCost)
+                visited[successor] = pathCost
 
 
 

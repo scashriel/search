@@ -22,6 +22,9 @@ from util import PriorityQueue
 import heapq
 
 class Wrapper:
+    """
+    Wrapper class for util.Stack and util.Queue, allowing all data structures to have the same push method
+    """
     def __init__(self, frontier):
         self.frontier = frontier
         self.list = frontier.list
@@ -39,14 +42,15 @@ class Wrapper:
         pass
 
 class QueueWrapper(PriorityQueue):
+    """
+    Wrapper class for PriorityQueue to overload the update method as now item is the tuple (state, steps) and not 'state'
+    """
     def __init__(self, frontier):
         self.frontier = frontier
         PriorityQueue.__init__(self)        # super-class initializer
 
     def update(self, item, priority):
-        # If item already in priority queue with higher priority, update its priority and rebuild the heap.
-        # If item already in priority queue with equal or lower priority, do nothing.
-        # If item not in priority queue, do the same thing as self.push.
+        # Overloading PriorityQueue update() function
         for index, (p, c, i) in enumerate(self.heap):
             if i[0] == item[0]:
                 if p <= priority:

@@ -18,49 +18,6 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
-from util import PriorityQueue
-import heapq
-
-class Wrapper:
-    """
-    Wrapper class for util.Stack and util.Queue, allowing all data structures to have the same push method
-    """
-    def __init__(self, frontier):
-        self.frontier = frontier
-        self.list = frontier.list
-
-    def push(self, item, priority):
-        self.frontier.push(item)
-
-    def pop(self):
-        return self.frontier.pop()
-
-    def isEmpty(self):
-        return self.frontier.isEmpty()
-
-    def update(self, item, priority):
-        pass
-
-class QueueWrapper(PriorityQueue):
-    """
-    Wrapper class for PriorityQueue to overload the update method as now item is the tuple (state, steps) and not 'state'
-    """
-    def __init__(self, frontier):
-        self.frontier = frontier
-        PriorityQueue.__init__(self)        # super-class initializer
-
-    def update(self, item, priority):
-        # Overloading PriorityQueue update() function
-        for index, (p, c, i) in enumerate(self.heap):
-            if i[0] == item[0]:
-                if p <= priority:
-                    break
-                del self.heap[index]
-                self.heap.append((priority, c, item))
-                heapq.heapify(self.heap)
-                break
-        else:
-            self.push(item, priority)
 
 class SearchProblem:
     """
@@ -130,22 +87,18 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
 
-    #initialize stack (frontier)
-    frontier = Wrapper(util.Stack())
-    return graphSearch(problem, frontier)
+    return graphSearch(problem, util.Stack())
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
 
-    #initialize frontier with start set
-    frontier = Wrapper(util.Queue())
-    return graphSearch(problem, frontier)
+    return graphSearch(problem, util.Queue())
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-
-    frontier = QueueWrapper(util.PriorityQueue())
-    return graphSearch(problem, frontier)
+    # The lambda function is the priority function passed to PriorityQueueWithFunction
+    # where x[-1] is the cost
+    return graphSearch(problem, util.PriorityQueueWithFunction(lambda x: x[-1]))
 
 def nullHeuristic(state, problem=None):
     """
@@ -156,38 +109,36 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    frontier = QueueWrapper(util.PriorityQueueWithFunction(heuristic))
-    return graphSearch(problem, frontier, heuristic)
-    #util.raiseNotDefined()
+    # The lambda function is the priority function passed to PriorityQueueWithFunction
+    # where x[-1] is the cost and x[0] is the state
+    return graphSearch(problem, util.PriorityQueueWithFunction(lambda x: x[-1] + heuristic(x[0], problem)))
+
 
 def graphSearch(problem, frontier, heuristic=nullHeuristic):
-    startState = problem.getStartState()
-    steps = list('')
-    frontier.push((startState,steps), 0 + heuristic(startState, problem))
+    """
+    General graph search algorithm, based on figure 3.7 in the text. DFS, BFS, UCS, and A* search performed based on data structure passed through
+
+    Each node is a tuple in the form (state, path, cost)
+    state: The agent position
+    path: A list of actions leading from the startState to the agent position
+    cost: The cost for the agent to fulfill the actions in path
+    """
+
+    frontier.push( (problem.getStartState(), [], heuristic(problem.getStartState(), problem)) )
     explored = set()
 
-    if problem.isGoalState(startState): return []
-
-    visited = {startState: 0 + heuristic(startState, problem)}
-
     while not frontier.isEmpty():
-        state, steps = frontier.pop()
-        #print(f'state is {state}')
-        if problem.isGoalState(state):
-            return steps
-        explored.add(state)
-        for successor, action, cost in problem.getSuccessors(state):
-            pathCost = (problem.getCostOfActions((steps + [action])) + heuristic(successor, problem))
-        #    print(f'{successor} heuristic is ', heuristic(successor, problem))
-            if visited.get(successor, 0) > pathCost:
-#                print(f'\n{successor} in visited with pathcost\n', visited.get(successor, 0), visited)
-                frontier.update((successor, (steps + [action])), pathCost)
-                visited[successor] = pathCost
-#                print('\nupdated visited\n', visited, f'pathcost is {pathCost}')
-            if successor not in explored and successor not in visited:
-                frontier.push((successor, (steps + [action])), pathCost)
-                visited[successor] = pathCost
+        state, path, cost = frontier.pop()
 
+        if state not in explored:
+            explored.add(state)
+
+            if problem.isGoalState(state):
+                return path
+
+            for successor, nextStep, stepCost in problem.getSuccessors(state):
+                frontier.push((successor, path + [nextStep], cost + stepCost))
+    return []
 
 
 # Abbreviations
